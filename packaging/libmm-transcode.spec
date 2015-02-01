@@ -1,13 +1,12 @@
 Name:       libmm-transcode
 Summary:    Multimedia Framework Video Transcode Library
-Version:    0.8
-Release:    2
+Version:    0.9
+Release:    6
 Group:      System/Libraries
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 BuildRequires:  pkgconfig(mm-common)
 BuildRequires:  pkgconfig(mm-log)
-BuildRequires:  pkgconfig(mm-ta)
 BuildRequires:  pkgconfig(mm-fileinfo)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(gstreamer-0.10)

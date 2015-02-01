@@ -54,7 +54,6 @@ extern "C" {
 #include <pthread.h>
 #include <mm_file.h>
 #include <gmodule.h>
-#include <mm_ta.h>
 #define BUFFER_SIZE 4096
 #define ENC_BUFFER_SIZE 25
 
@@ -99,7 +98,7 @@ typedef struct _handle_param_s
 	unsigned long start_pos;
 	unsigned long duration;
 	mm_seek_mode_e seek_mode;
-	char outputfile[BUFFER_SIZE];
+	gchar* outputfile;
 	gboolean seeking;
 	gboolean async_done;
 	gboolean segment_done;
@@ -184,7 +183,7 @@ typedef struct _handle_property_s
 	unsigned long current_pos;
 	unsigned long real_duration;
 	unsigned long total_length;
-	char sourcefile[BUFFER_SIZE];
+	char *sourcefile;
 	unsigned int _MMHandle;
 
 	mm_containerformat_e containerformat;

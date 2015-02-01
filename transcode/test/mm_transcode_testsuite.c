@@ -25,7 +25,6 @@
 #include "mm_transcode_internal.h"
 #include "mm_log.h"
 #include "mm_debug.h"
-#include <mm_ta.h>
 #include <unistd.h>
 #include <signal.h>
 #define _one_by_one 1

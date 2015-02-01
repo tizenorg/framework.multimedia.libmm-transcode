@@ -520,7 +520,7 @@ _mm_transcode_audio_capsfilter(GstCaps *caps, handle_s *handle)
 	}
 	TRANSCODE_FREE(handle->property->audiodecodename);
 	g_object_set(G_OBJECT(handle->encodebin->encbin), ACAPS, caps, NULL);
-	debug_log("%s audiocaps: %s", handle->property->aenc, gst_caps_to_string(caps));
+	gst_caps_unref(caps);
 }
 
 int
@@ -576,12 +576,17 @@ _mm_transcode_exec(handle_s *handle, handle_param_s *param)
 
 	if (!handle) {
 		debug_error("[ERROR] - handle");
-		return MM_ERROR_INVALID_ARGUMENT;
+		return MM_ERROR_TRANSCODE_INVALID_VALUE;
 	}
 
 	if (!handle->property) {
 		debug_error("[ERROR] - handle property");
 		return MM_ERROR_TRANSCODE_INTERNAL;
+	}
+
+	if(!param || !param->outputfile) {
+		debug_error("[ERROR] - param");
+		return MM_ERROR_TRANSCODE_INVALID_VALUE;
 	}
 
 	g_mutex_lock (handle->property->thread_mutex);
@@ -605,9 +610,14 @@ _mm_transcode_exec(handle_s *handle, handle_param_s *param)
 		handle->param->start_pos = param->start_pos;
 		handle->param->duration = param->duration;
 		handle->param->seek_mode = param->seek_mode;
+		handle->param->outputfile = malloc(sizeof(gchar) * BUFFER_SIZE);
+		if(!handle->param->outputfile) {
+			TRANSCODE_FREE(handle->param);
+			return MM_ERROR_TRANSCODE_NO_FREE_SPACE;
+		}
 
 		memset(handle->param->outputfile, 0, BUFFER_SIZE);
-		strncpy(handle->param->outputfile, param->outputfile, strlen(param->outputfile));
+		strncpy(handle->param->outputfile, param->outputfile, strlen(param->outputfile) - 1);
 
 		handle->param->seeking = param->seeking;
 		handle->param->async_done = FALSE;
@@ -846,7 +856,6 @@ _mm_transcode_video_capsfilter_set_parameter(GstCaps *caps, handle_s *handle)
 		return;
 	}
 
-	debug_log("caps: %s", gst_caps_to_string(caps));
 	GstStructure *_str = gst_caps_get_structure (caps, 0);
 	handle->property->mime = _mm_check_media_type(caps);
 	debug_log("mime: %s", handle->property->mime);
@@ -921,9 +930,14 @@ _mm_transcode_set_handle_element(handle_s *handle, const char * in_Filename, mm_
 		return MM_ERROR_INVALID_ARGUMENT;
 	}
 
-	memset(handle->property->sourcefile, 0, BUFFER_SIZE);
-	strncpy(handle->property->sourcefile, in_Filename, strlen (in_Filename));
-	debug_log("%s(%d)", handle->property->sourcefile, strlen (in_Filename));
+	handle->property->sourcefile = malloc(sizeof(char) * BUFFER_SIZE);
+	if(handle->property->sourcefile) {
+		memset(handle->property->sourcefile, 0, BUFFER_SIZE);
+		strncpy(handle->property->sourcefile, in_Filename, strlen (in_Filename) - 1);
+	} else {
+		debug_error("[ERROR] malloc fail of sourcefile");
+		return MM_ERROR_TRANSCODE_INTERNAL;
+	}
 
 	handle->property->containerformat = containerformat;
 	handle->property->videoencoder = videoencoder;
@@ -961,8 +975,13 @@ _mm_transcode_set_handle_parameter(handle_param_s *param, unsigned int resolutio
 	}
 
 	if(out_Filename) {
+		param->outputfile = malloc(sizeof(gchar) * BUFFER_SIZE);
+		if(!param->outputfile) {
+			debug_error("[ERROR] outputfile");
+			return MM_ERROR_TRANSCODE_NO_FREE_SPACE;
+		}
 		memset(param->outputfile, 0, BUFFER_SIZE);
-		strncpy(param->outputfile, out_Filename, strlen (out_Filename));
+		strncpy(param->outputfile, out_Filename, strlen (out_Filename) - 1);
 		debug_log("%s(%d)", param->outputfile, strlen (out_Filename));
 		debug_log("output file name: %s", param->outputfile);
 	} else {
@@ -1259,12 +1278,7 @@ _mm_transcode_thread_repeate(gpointer data)
 			debug_log("[pop queue] resolution_width: %d, resolution_height: %d, start_pos: %d, duration: %d, seek_mode: %d outputfile: %s\n",
 			pop_data->resolution_width, pop_data->resolution_height, pop_data->start_pos, pop_data->duration, pop_data->seek_mode, pop_data->outputfile);
 
-			MMTA_INIT();
-			__ta__("_mm_transcode_exec",
 			ret = _mm_transcode_exec(handle, pop_data); /* Need to block */
-			);
-			MMTA_ACUM_ITEM_SHOW_RESULT();
-			MMTA_RELEASE ();
 			if(ret == MM_ERROR_NONE) {
 				debug_log("Success - transcode_exec");
 			} else{
