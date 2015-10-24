@@ -20,6 +20,7 @@ libmm_transcode_la_CFLAGS = -I$(srcdir)/include \
                              $(GST_PLUGIN_BASE_CFLAGS) \
 			     $(GST_INTERFACE_CFLAGS) \
                              $(GSTPBUTILS_CFLAGS) \
+			     $(GSTVIDFMT_CFLAGS) \
                              $(MMLOG_CFLAGS) -DMMF_LOG_OWNER=0x300000 -DMMF_DEBUG_PREFIX=\"MMF-VIDEOEDIT\"
 
 libmm_transcode_la_LIBADD = $(MMCOMMON_LIBS) \
@@ -30,6 +31,7 @@ libmm_transcode_la_LIBADD = $(MMCOMMON_LIBS) \
                             $(GST_PLUGIN_BASE_LIBS) \
 			    $(GST_INTERFACE_LIBS) \
                             $(GSTPBUTILS_LIBS) \
+			    $(GSTVIDFMT_LIBS) \
 			    $(MMLOG_LIBS)
 
 pcfiles = mm-transcode.pc
